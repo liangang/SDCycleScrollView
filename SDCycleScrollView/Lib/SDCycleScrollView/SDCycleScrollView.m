@@ -159,8 +159,6 @@ NSString * const ID = @"SDCycleScrollViewCell";
     
     if ([self.delegate respondsToSelector:@selector(customCollectionViewCellClassForCycleScrollView:)] && [self.delegate customCollectionViewCellClassForCycleScrollView:self]) {
         [self.mainView registerClass:[self.delegate customCollectionViewCellClassForCycleScrollView:self] forCellWithReuseIdentifier:ID];
-    }else if ([self.delegate respondsToSelector:@selector(customCollectionViewCellNibForCycleScrollView:)] && [self.delegate customCollectionViewCellNibForCycleScrollView:self]) {
-        [self.mainView registerNib:[self.delegate customCollectionViewCellNibForCycleScrollView:self] forCellWithReuseIdentifier:ID];
     }
 }
 
@@ -307,7 +305,7 @@ NSString * const ID = @"SDCycleScrollViewCell";
         [self setAutoScroll:self.autoScroll];
     } else {
         self.mainView.scrollEnabled = NO;
-        [self invalidateTimer];
+        [self setAutoScroll:NO];
     }
     
     [self setupPageControl];
@@ -573,11 +571,8 @@ NSString * const ID = @"SDCycleScrollViewCell";
     long itemIndex = [self pageControlIndexWithCurrentCellIndex:indexPath.item];
     
     if ([self.delegate respondsToSelector:@selector(setupCustomCell:forIndex:cycleScrollView:)] &&
-        [self.delegate respondsToSelector:@selector(customCollectionViewCellClassForCycleScrollView:)] && [self.delegate customCollectionViewCellClassForCycleScrollView:self]) {
-        [self.delegate setupCustomCell:cell forIndex:itemIndex cycleScrollView:self];
-        return cell;
-    }else if ([self.delegate respondsToSelector:@selector(setupCustomCell:forIndex:cycleScrollView:)] &&
-              [self.delegate respondsToSelector:@selector(customCollectionViewCellNibForCycleScrollView:)] && [self.delegate customCollectionViewCellNibForCycleScrollView:self]) {
+        [self.delegate respondsToSelector:@selector(customCollectionViewCellClassForCycleScrollView:)] &&
+        [self.delegate customCollectionViewCellClassForCycleScrollView:self]) {
         [self.delegate setupCustomCell:cell forIndex:itemIndex cycleScrollView:self];
         return cell;
     }
@@ -643,6 +638,9 @@ NSString * const ID = @"SDCycleScrollViewCell";
         UIPageControl *pageControl = (UIPageControl *)_pageControl;
         pageControl.currentPage = indexOnPageControl;
     }
+    if (self.autoScroll==NO&&self.leftScrollBlock) {
+        self.leftScrollBlock(scrollView.contentOffset.x);
+    }
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
@@ -677,17 +675,5 @@ NSString * const ID = @"SDCycleScrollViewCell";
     }
 }
 
-- (void)makeScrollViewScrollToIndex:(NSInteger)index{
-    if (self.autoScroll) {
-        [self invalidateTimer];
-    }
-    if (0 == _totalItemsCount) return;
-    
-    [self scrollToIndex:(int)(_totalItemsCount * 0.5 + index)];
-    
-    if (self.autoScroll) {
-        [self setupTimer];
-    }
-}
 
 @end
